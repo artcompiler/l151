@@ -1,4 +1,4 @@
-/* Copyright (c) 2021, ARTCOMPILER INC */
+/* Copyright (c) 2023, Artcompiler Inc */
 import {
   Checker as BasisChecker,
   Transformer as BasisTransformer,
@@ -29,7 +29,7 @@ export class Transformer extends BasisTransformer {
 }
 
 export const compiler = new BasisCompiler({
-  langID: 0,
+  langID: 150,
   version: 'v0.0.1',
   Checker: Checker,
   Transformer: Transformer,
