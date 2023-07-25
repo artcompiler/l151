@@ -235,7 +235,9 @@ function Tabs({ currentTab, setTab }) {
           name="tabs"
           className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
           defaultValue={tabs[currentTab].name}
-          onChange={(e) => setTab(e.target.value)}
+          onChange={(e) => {
+            setTab(tabs.findIndex(tab => tab.name === e.target.value || 0));
+          }}
         >
           {tabs.map(tab => (
             <option key={tab.name}>{tab.name}</option>
@@ -275,7 +277,6 @@ const Form = () => {
   // const [ token, setToken ] = useState();
   // const { id, url, access_token } = router.query;
   const [ tab, setTab] = useState(1);
-  console.log("Form() tab=" + tab);
   // const [ state, setState] = useState({});
   // let recompile = true;
   // const stateHash = JSON.stringify(state);
