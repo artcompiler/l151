@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 51",
+    "dev": "next dev -p 5150",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -24,5 +24,10 @@
     "react-redux": "^8.0.5",
     "sharp": "^0.31.3",
     "typescript": "4.8.4"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.27",
+    "tailwindcss": "^3.3.3"
   }
 }
