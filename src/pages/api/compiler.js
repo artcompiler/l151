@@ -16,7 +16,7 @@ export class Checker extends BasisChecker {
     });
   }
 
-  PRICING(node, options, resume) {
+  PRICES(node, options, resume) {
     this.visit(node.elts[0], options, async (e0, v0) => {
       this.visit(node.elts[1], options, async (e1, v1) => {
         const err = [];
@@ -42,17 +42,23 @@ export class Transformer extends BasisTransformer {
     this.visit(node.elts[0], options, async (e0, v0) => {
       this.visit(node.elts[1], options, async (e1, v1) => {
         const err = [];
-        const val = node;
+        const val = {
+          ...v1,
+          items: v0,
+        };
         resume(err, val);
       });
     });
   }
 
-  PRICING(node, options, resume) {
+  PRICES(node, options, resume) {
     this.visit(node.elts[0], options, async (e0, v0) => {
       this.visit(node.elts[1], options, async (e1, v1) => {
         const err = [];
-        const val = node;
+        const val = {
+          ...v1,
+          prices: v0,
+        };
         resume(err, val);
       });
     });
@@ -62,7 +68,10 @@ export class Transformer extends BasisTransformer {
     this.visit(node.elts[0], options, async (e0, v0) => {
       this.visit(node.elts[1], options, async (e1, v1) => {
         const err = [];
-        const val = node;
+        const val = {
+          ...v1,
+          shipping: v0,
+        };
         resume(err, val);
       });
     });
