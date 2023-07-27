@@ -208,7 +208,6 @@ const PricesForm = ({ setState, isLoading, data }) => {
 }
 
 const ItemsForm = ({ setState, isLoading, data }) => {
-  console.log("ItemsForm() data=" + JSON.stringify(data, null, 2));
   const { items } = data;
   if (items === undefined) {
     return <div />;
@@ -238,13 +237,10 @@ let lastStateHash;
 const Form = () => {
   const router = useRouter();
   const { id, url, access_token } = router.query;
-  console.log("Form() id=" + id + " url=" + url);
   const [ tab, setTab] = useState(1);
   const [ state, setState] = useState({});
   let recompile = true; // FIXME
   const stateHash = JSON.stringify(state);
-  console.log("stateHash=" + stateHash);
-  console.log("lastStateHash=" + lastStateHash);
   if (stateHash !== lastStateHash) {
     // The state of the form has changed, so recompile.
     recompile = true;
@@ -266,7 +262,6 @@ const Form = () => {
     ...state,
     ...resp.data?.data,
   };
-  console.log("Form() data=" + JSON.stringify(data, null, 2));
   let elts;
   switch (tab) {
   case 0:

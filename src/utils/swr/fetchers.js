@@ -7,7 +7,6 @@ export const compile = async ({ id, url, data, access_token }) => {
     authorization: access_token,
     "x-graffiticode-storage-type": "persistent",    
   };
-  console.log("compile() baseUrl=" + baseUrl);
   const post = bent(baseUrl, "POST", "json", headers);
   const body = { id, data };
   const resp = await post('/compile', body);
