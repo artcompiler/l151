@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import * as d3 from 'd3';
 import useSWR from 'swr';
 import { compile } from '../utils/swr/fetchers';
+import { useD3 } from '../utils/hooks/use-d3';
 
 function isNonNullObject(obj) {
   return (typeof obj === "object" && obj !== null);
@@ -18,7 +19,6 @@ const plusIcon =
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
     <path fillRule="evenodd" d="M12 5.25a.75.75 0 01.75.75v5.25H18a.75.75 0 010 1.5h-5.25V18a.75.75 0 01-1.5 0v-5.25H6a.75.75 0 010-1.5h5.25V6a.75.75 0 01.75-.75z" clipRule="evenodd" />
   </svg>
-
 
 const tabs = [
   { name: 'Shipping', href: '#', current: false },
@@ -194,6 +194,156 @@ function Table({ table_name, row_name, desc, cols, rows }) {
   )
 }
 
+import aapl from "./aapl.json";
+import unemployment from "./unemployment.json";
+import sample from "./sampleData.json";
+
+const margin = s => +s.slice(0, s.length - 1);
+
+const LineChart = ({ data }) => {
+  const ref = useD3(
+    (svg) => {
+      // Specify the chart’s dimensions.
+      const width = 928;
+      const height = 600;
+      const marginTop = 20;
+      const marginRight = 20;
+      const marginBottom = 30;
+      const marginLeft = 30;
+
+      // Create the positional scales.
+      const x = d3.scaleLinear()
+            .domain(d3.extent(data, d => d.quantity))
+            .range([marginLeft, width - marginRight]);
+
+      const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => margin(d.margin))]).nice()
+            .range([height - marginBottom, marginTop]);
+
+      // Create the SVG container.
+      svg
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [0, 0, width, height])
+        .attr("style", "max-width: 100%; height: auto; overflow: visible; font: 10px sans-serif;");
+
+      // Add the horizontal axis.
+      svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(x).ticks(width / 100).tickSizeOuter(0));
+
+      // Add the vertical axis.
+      svg.append("g")
+        .attr("transform", `translate(${marginLeft},0)`)
+        .call(d3.axisLeft(y))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.selectAll(".tick line").clone()
+              .attr("x2", width - marginLeft - marginRight)
+              .attr("stroke-opacity", 0.1))
+        .call(g => g.append("text")
+              .attr("x", -marginLeft)
+              .attr("y", 10)
+              .attr("fill", "currentColor")
+              .attr("text-anchor", "start")
+              .text("↑ Net Margin (%)"));
+
+
+      // Compute the points in pixel space as [x, y, z], where z is the name of the series.
+      const points = data.map((d) => [x(d.quantity), y(margin(d.margin)), d.item]);
+
+      // Group the points by series.
+      const groups = d3.rollup(points, v => Object.assign(v, {z: v[0][2]}), d => d[2]);
+
+      // Draw the lines.
+      const line = d3.line();
+      const path = svg.append("g")
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-linecap", "round")
+            .selectAll("path")
+            .data(groups.values())
+            .join("path")
+            .style("mix-blend-mode", "multiply")
+            .attr("d", line);
+
+      // Add an invisible layer for the interactive tip.
+      const dot = svg.append("g")
+            .attr("display", "none");
+
+      dot.append("circle")
+        .attr("r", 2.5);
+
+      dot.append("text")
+        .attr("text-anchor", "middle")
+        .attr("y", -8);
+
+      svg
+        .on("pointerenter", pointerentered)
+        .on("pointermove", pointermoved)
+        .on("pointerleave", pointerleft)
+        .on("touchstart", event => event.preventDefault());
+
+      // When the pointer moves, find the closest point, update the interactive tip, and highlight
+      // the corresponding line. Note: we don't actually use Voronoi here, since an exhaustive search
+      // is fast enough.
+      function pointermoved(event) {
+        const [xm, ym] = d3.pointer(event);
+        const i = d3.leastIndex(points, ([x, y]) => Math.hypot(x - xm, y - ym));
+        const [x, y, k] = points[i];
+        path.style("stroke", ({z}) => z === k ? null : "#ddd").filter(({z}) => z === k).raise();
+        dot.attr("transform", `translate(${x},${y})`);
+        dot.select("text").text(k);
+        svg.property("value", data[i]).dispatch("input", {bubbles: true});
+      }
+
+      function pointerentered() {
+        path.style("mix-blend-mode", null).style("stroke", "#ddd");
+        dot.attr("display", null);
+      }
+
+      function pointerleft() {
+        path.style("mix-blend-mode", "multiply").style("stroke", null);
+        dot.attr("display", "none");
+        svg.node().value = null;
+        svg.dispatch("input", {bubbles: true});
+      }
+
+    },
+    [data.length]
+  );
+
+  return (
+    <svg
+      ref={ref}
+      style={{
+        height: 500,
+        width: "100%",
+        marginRight: "0px",
+        marginLeft: "0px",
+      }}
+    >
+      <g className="plot-area" />
+      <g className="x-axis" />
+      <g className="y-axis" />
+    </svg>
+  );
+}
+
+const PlaygroundForm = ({ setState, isLoading, data }) => {
+  const { prices } = data;
+  if (prices === undefined) {
+    return <div />;
+  }
+  const { table_name, row_name, desc, cols, rows } = prices;
+  return (
+    <div key={ticket++} id="graffiti" className="">
+      <LineChart data={ sample }/>
+    </div>
+  );
+}
+
 const PricesForm = ({ setState, isLoading, data }) => {
   const { prices } = data;
   if (prices === undefined) {
@@ -272,6 +422,9 @@ const Form = () => {
     break;
   case 2:
     elts = PricesForm({ setState, isLoading, data });
+    break;
+  case 3:
+    elts = PlaygroundForm({ setState, isLoading, data });
     break;
   default:
     elts = ShippingForm({ setState, isLoading, data });
