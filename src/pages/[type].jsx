@@ -196,7 +196,7 @@ function Table({ table_name, row_name, desc, cols, rows }) {
 
 import sample from "./sampleData.json";
 
-const margin = s => +s.slice(0, s.length - 1);
+const margin = s => s === "number" ? s : Number.parseFloat(s);
 
 const LineChart = ({ data }) => {
   const ref = useD3(
@@ -330,14 +330,14 @@ const LineChart = ({ data }) => {
 }
 
 const PlaygroundForm = ({ setState, isLoading, data }) => {
-  const { prices } = data;
+  const { prices, profits } = data;
   if (prices === undefined) {
     return <div />;
   }
   const { table_name, row_name, desc, cols, rows } = prices;
   return (
     <div key={ticket++} id="graffiti" className="">
-      <LineChart data={ sample }/>
+      <LineChart data={ profits }/>
     </div>
   );
 }

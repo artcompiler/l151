@@ -37,7 +37,7 @@ export class Checker extends BasisChecker {
   }
 }
 
-const decimalFromDollar = str => Number.parseFloat(str.slice(str.indexOf("$") + 1)).toFixed(2);
+const decimalFromDollar = str => Number.parseFloat(str.slice(str.indexOf("$") + 1));
 
 const shippingCostByWt = ({ shipping, wt }) => {
   const { UPS_Resi_SC: cost } = shipping.rows.find(row => row.Wt === Math.ceil(wt)) || {};
@@ -46,7 +46,6 @@ const shippingCostByWt = ({ shipping, wt }) => {
 
 const shippingCostByQty = ({ shipping, wt, qty }) => {
   const itemShipping = new Array(8).fill(0).map((elt, index) => (shippingCostByWt({ shipping, wt }) * (index + 1)).toFixed(2));
-  console.log("itemShipping=" + JSON.stringify(itemShipping));
   return itemShipping;
 }
 
@@ -56,22 +55,51 @@ const itemPriceFromQty = ({ pricing, qty }) => {
 
 const itemPricesByQty = ({ pricing, qty }) => {
   const itemPrices = new Array(8).fill(0).map((elt, index) => (itemPriceFromQty({ pricing, qty: index + 1 }) * (index + 1)).toFixed(2));
-  console.log("itemPrices=" + JSON.stringify(itemPrices));
   return itemPrices;
 }
 
-const computeProfit = ({ shipping, items, prices, shippingCharge, freeShippingBreak }) => {
-  const shippingCosts = shippingCostByQty({ shipping, wt: items.rows[0].Wt, qty: 8 })
-  const itemsPrices = itemPricesByQty({ pricing: prices.rows[0], qty: 8 })
-  // shippingPrice = itemsPrices < freeShippingBreak && shippingCharge || 0
-  // profit = orderPrice + shippingPrice - shippingCost - lcogs - pkgCost
-  // margin = profit / (lcogs * qty)
+const shippingPricesByQty = ({ itemPrices, shippingPrice, freeShippingBreak }) => {
+  return itemPrices.map(price => +price < +freeShippingBreak && shippingPrice || 0);
+}
+
+const itemCostsByQty = ({ item, qty }) => {
+  const itemCosts = new Array(8).fill(0)
+        .map((elt, index) => decimalFromDollar(item.LCOGS) * (index + 1) + decimalFromDollar(item.Pkg_Cost));
+  return itemCosts;
+}
+
+const itemProfitsByQty = ({ itemPrices, shippingPrices, itemCosts }) =>
+  itemCosts.map((itemCost, index) =>
+    (+itemPrices[index] + +shippingPrices[index] - +itemCost).toFixed(2));
+
+const computeProfit = ({ shipping, items, prices, shippingPrice, freeShippingBreak }) => {
+  shippingPrice = 14.95;
+  freeShippingBreak = 30;
+  // Compute the profit for all items and all quatities.
+  const profits = [items.rows[0]].map((item, index) => {
+    const price = prices.rows[index];
+    const shippingCosts = shippingCostByQty({ shipping, wt: item.Wt, qty: 8 })
+    const itemPrices = itemPricesByQty({ pricing: price, qty: 8 })
+    const shippingPrices = shippingPricesByQty({ itemPrices, shippingPrice, freeShippingBreak });
+    const itemCosts = itemCostsByQty({ item: item, qty: 8 });
+    const itemProfits = itemProfitsByQty({ itemPrices, shippingPrices, itemCosts });
+    //  const   orderPrice + shippingPrice - shippingCost - itemCost;
+    // margin = profit / (lcogs * qty)
+    return itemProfits.map((itemProfit, index) => {
+      return {
+        item: item.Desc,
+        quantity: index + 1,
+        profit: itemProfit,
+        margin: itemProfit / itemCosts[index],
+      };
+    });
+  });
   // profits = items.map((item, index) => {
   //   return {
   //     item: item.name,
   //   };
   // });
-  return;
+  return profits.flat();
 };
 
 export class Transformer extends BasisTransformer {
