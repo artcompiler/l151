@@ -194,7 +194,7 @@ function Table({ table_name, row_name, desc, cols, rows }) {
   )
 }
 
-import sample from "./sampleData.json";
+import sampleData from "./sampleData.json";
 
 const margin = s => s === "number" ? s : Number.parseFloat(s);
 
@@ -337,7 +337,7 @@ const PlaygroundForm = ({ setState, isLoading, data }) => {
   const { table_name, row_name, desc, cols, rows } = prices;
   return (
     <div key={ticket++} id="graffiti" className="">
-      <LineChart data={ profits }/>
+      <LineChart data={ profits && sampleData }/>
     </div>
   );
 }
