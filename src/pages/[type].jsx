@@ -194,8 +194,6 @@ function Table({ table_name, row_name, desc, cols, rows }) {
   )
 }
 
-import aapl from "./aapl.json";
-import unemployment from "./unemployment.json";
 import sample from "./sampleData.json";
 
 const margin = s => +s.slice(0, s.length - 1);
