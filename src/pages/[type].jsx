@@ -330,14 +330,13 @@ const LineChart = ({ data }) => {
 }
 
 const PlaygroundForm = ({ setState, isLoading, data }) => {
-  const { prices, profits } = data;
-  if (prices === undefined) {
+  const { profits } = data;
+  if (profits === undefined) {
     return <div />;
   }
-  const { table_name, row_name, desc, cols, rows } = prices;
   return (
     <div key={ticket++} id="graffiti" className="">
-      <LineChart data={ profits && sampleData }/>
+      <LineChart data={ profits }/>
     </div>
   );
 }
