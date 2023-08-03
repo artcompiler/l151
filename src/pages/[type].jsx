@@ -198,6 +198,44 @@ import sampleData from "./sampleData.json";
 
 const margin = s => s === "number" ? s : Number.parseFloat(s);
 
+function DollarInput({ name, label, data, setState }) {
+  const value = data[name];
+  console.log("DollarInput() value=" + value);
+  return (
+    <div className="mx-1">
+      <label htmlFor="text" className="block text-xs font-medium leading-6 text-gray-400">
+        { label }
+      </label>
+      <div className="mt-1 flex flex-row">
+        <span
+          className="block w-full rounded-md px-2 py-2 mr-2 text-gray-400 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 hover:ring-gray-600 sm:text-sm sm:leading-6"
+            > $
+          <input
+            type="text"
+            name={name}
+            id={name}
+            placeholder={value}
+            className="focus:outline-none px-0.5 mr-2 text-gray-900 placeholder:text-gray-400 sm:text-sm sm:leading-6"
+          />
+          </span>
+        <button
+          type="button"
+          className="rounded-md bg-white px-3 text-sm font-semibold text-gray-600 ring-1 ring-inset ring-gray-600 hover:bg-gray-50"
+          onClick={() => {
+            setState({
+              ...data,
+              [name]: document.getElementById(name).value,
+            })
+          }}
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  )
+}
+
+
 const LineChart = ({ data }) => {
   const ref = useD3(
     (svg) => {
@@ -223,7 +261,7 @@ const LineChart = ({ data }) => {
         .attr("width", width)
         .attr("height", height)
         .attr("viewBox", [0, 0, width, height])
-        .attr("style", "max-width: 100%; height: auto; overflow: visible; font: 10px sans-serif;");
+        .attr("style", "max-width: 100%; height: auto; overflow: visible; font: 24px sans-serif;");
 
       // Add the horizontal axis.
       svg.append("g")
@@ -257,7 +295,7 @@ const LineChart = ({ data }) => {
       const path = svg.append("g")
             .attr("fill", "none")
             .attr("stroke", "steelblue")
-            .attr("stroke-width", 1.5)
+            .attr("stroke-width", 2.5)
             .attr("stroke-linejoin", "round")
             .attr("stroke-linecap", "round")
             .selectAll("path")
@@ -337,6 +375,22 @@ const PlaygroundForm = ({ setState, isLoading, data }) => {
   return (
     <div key={ticket++} id="graffiti" className="">
       <LineChart data={ profits }/>
+      <div className="columns-2">
+        <DollarInput
+          name="shippingFee"
+          label="Flat rate shipping price"
+          placeholder="12.95"
+          data={data}
+          setState={setState}
+        />
+        <DollarInput
+          name="shippingBreak"
+          label="Free shipping on orders over"
+          placeholder="30.00"
+          data={data}
+          setState={setState}
+        />
+      </div>
     </div>
   );
 }
@@ -384,7 +438,7 @@ let lastStateHash;
 const Form = () => {
   const router = useRouter();
   const { id, url, access_token } = router.query;
-  const [ tab, setTab] = useState(1);
+  const [ tab, setTab] = useState(3);
   const [ state, setState] = useState({});
   let recompile = true; // FIXME
   const stateHash = JSON.stringify(state);

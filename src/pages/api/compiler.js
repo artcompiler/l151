@@ -59,8 +59,8 @@ const itemPricesByQty = ({ pricing, qty }) => {
   return itemPrices;
 }
 
-const shippingPricesByQty = ({ itemPrices, shippingPrice, freeShippingBreak }) => {
-  return itemPrices.map(price => +price < +freeShippingBreak && shippingPrice || 0);
+const shippingPricesByQty = ({ itemPrices, shippingFee, shippingBreak }) => {
+  return itemPrices.map(price => +price < +shippingBreak && shippingFee || 0);
 }
 
 const itemCogsByQty = ({ item, qty }) => {
@@ -83,9 +83,9 @@ const itemProfitsByQty = ({ itemPrices, shippingPrices, itemCosts }) =>
   itemCosts.map((itemCost, index) =>
     (+itemPrices[index] + +shippingPrices[index] - +itemCost));
 
-const computeProfit = ({ shipping, items, prices, shippingPrice, freeShippingBreak }) => {
-  shippingPrice = 12.95;
-  freeShippingBreak = 30;
+const computeProfit = ({ shipping, items, prices, shippingFee, shippingBreak }) => {
+  shippingFee = shippingFee || "12.95";
+  shippingBreak = "30.00";
   // Compute the profit for all items and all quatities.
   const profits = items.rows.map((item, index) => {
     const pricing = prices.rows[index];
@@ -94,7 +94,7 @@ const computeProfit = ({ shipping, items, prices, shippingPrice, freeShippingBre
     console.log("computeProfits() shippingCosts=" + JSON.stringify(shippingCosts));
     const itemPrices = itemPricesByQty({ pricing, qty: 8 })
     console.log("itemPrices() itemPrices=" + JSON.stringify(itemPrices));
-    const shippingPrices = shippingPricesByQty({ itemPrices, shippingPrice, freeShippingBreak });
+    const shippingPrices = shippingPricesByQty({ itemPrices, shippingFee, shippingBreak });
     console.log("computeProfits() shippingPrices=" + JSON.stringify(shippingPrices));
     const itemCogs = itemCogsByQty({ item, qty: 8 });
     console.log("computeProfits() itemCogs=" + JSON.stringify(itemCogs));
