@@ -200,7 +200,6 @@ const margin = s => s === "number" ? s : Number.parseFloat(s);
 
 function DollarInput({ name, label, data, setState }) {
   const value = data[name];
-  console.log("DollarInput() value=" + value);
   return (
     <div className="mx-1">
       <label htmlFor="text" className="block text-xs font-medium leading-6 text-gray-400">
@@ -261,16 +260,18 @@ const LineChart = ({ data }) => {
         .attr("width", width)
         .attr("height", height)
         .attr("viewBox", [0, 0, width, height])
-        .attr("style", "max-width: 100%; height: auto; overflow: visible; font: 24px sans-serif;");
+        .attr("style", "max-width: 100%; height: auto; overflow: visible; font: 20px sans-serif;");
 
       // Add the horizontal axis.
       svg.append("g")
         .attr("transform", `translate(0,${height - marginBottom})`)
+        .attr("style", "font: 18px sans-serif; color: #aaa")
         .call(d3.axisBottom(x).ticks(width / 100).tickSizeOuter(0));
 
       // Add the vertical axis.
       svg.append("g")
         .attr("transform", `translate(${marginLeft},0)`)
+        .attr("style", "font: 18px sans-serif; color: #aaa")
         .call(d3.axisLeft(y))
         .call(g => g.select(".domain").remove())
         .call(g => g.selectAll(".tick line").clone()
@@ -281,6 +282,7 @@ const LineChart = ({ data }) => {
               .attr("y", 10)
               .attr("fill", "currentColor")
               .attr("text-anchor", "start")
+              .attr("style", "font: 20px sans-serif")
               .text("↑ Net Margin (%)"));
 
 
@@ -375,7 +377,7 @@ const PlaygroundForm = ({ setState, isLoading, data }) => {
   return (
     <div key={ticket++} id="graffiti" className="">
       <LineChart data={ profits }/>
-      <div className="columns-2">
+      <div className="columns-2 mt-8">
         <DollarInput
           name="shippingFee"
           label="Flat rate shipping price"
