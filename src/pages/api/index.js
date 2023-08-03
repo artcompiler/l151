@@ -20,7 +20,7 @@ export default async function compileHandler(req, res) {
     }
     await new Promise((resolve) =>
       compiler.compile(code, data, config, function (err, data) {
-        console.log("POST /compile data=" + JSON.stringify(data, null, 2));
+//        console.log("POST /compile data=" + JSON.stringify(data, null, 2));
         if (err && err.length) {
           res.status(500).json({ error: err });
         } else {
