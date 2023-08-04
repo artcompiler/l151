@@ -84,8 +84,9 @@ const itemProfitsByQty = ({ itemPrices, shippingPrices, itemCosts }) =>
     (+itemPrices[index] + +shippingPrices[index] - +itemCost));
 
 const computeProfit = ({ shipping, items, prices, shippingFee, shippingBreak }) => {
-  shippingFee = shippingFee || "12.95";
-  shippingBreak = "30.00";
+  console.log("computeProfit() shippingFee=" + shippingFee + " shippingBreak=" + shippingBreak);
+  shippingFee = shippingFee !== undefined ? shippingFee : "12.95";
+  shippingBreak = shippingBreak !== undefined ? shippingBreak : "30.00";
   // Compute the profit for all items and all quatities.
   const profits = items.rows.map((item, index) => {
     const pricing = prices.rows[index];

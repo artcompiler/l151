@@ -42,7 +42,7 @@ function Tabs({ currentTab, setTab }) {
         <select
           id="tabs"
           name="tabs"
-          className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+          className="block w-full rounded-md border-gray-300 py-1 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
           defaultValue={tabs[currentTab].name}
           onChange={(e) => {
             setTab(tabs.findIndex(tab => tab.name === e.target.value || 0));
@@ -64,7 +64,7 @@ function Tabs({ currentTab, setTab }) {
                   currentTab === index
                     ? 'border-indigo-500 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-                  'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium'
+                  'whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium'
                 )}
                 aria-current={tab.current ? 'page' : undefined}
                 onClick={() => setTab(index)}
@@ -234,7 +234,6 @@ function DollarInput({ name, label, data, setState }) {
   )
 }
 
-
 const LineChart = ({ data }) => {
   const ref = useD3(
     (svg) => {
@@ -279,7 +278,7 @@ const LineChart = ({ data }) => {
               .attr("stroke-opacity", 0.1))
         .call(g => g.append("text")
               .attr("x", -marginLeft)
-              .attr("y", 10)
+              .attr("y", -10)
               .attr("fill", "currentColor")
               .attr("text-anchor", "start")
               .attr("style", "font: 20px sans-serif")
@@ -287,7 +286,14 @@ const LineChart = ({ data }) => {
 
 
       // Compute the points in pixel space as [x, y, z], where z is the name of the series.
-      const points = data.map((d) => [x(d.quantity), y(margin(d.margin)), d.item]);
+      const points = data.map((d) => {
+        return [
+          x(d.quantity),
+          y(margin(d.margin)),
+          d.item,
+          margin(d.margin * 100),
+        ]
+      });
 
       // Group the points by series.
       const groups = d3.rollup(points, v => Object.assign(v, {z: v[0][2]}), d => d[2]);
@@ -329,10 +335,10 @@ const LineChart = ({ data }) => {
       function pointermoved(event) {
         const [xm, ym] = d3.pointer(event);
         const i = d3.leastIndex(points, ([x, y]) => Math.hypot(x - xm, y - ym));
-        const [x, y, k] = points[i];
+        const [x, y, k, v] = points[i];
         path.style("stroke", ({z}) => z === k ? null : "#ddd").filter(({z}) => z === k).raise();
         dot.attr("transform", `translate(${x},${y})`);
-        dot.select("text").text(k);
+        dot.select("text").text(`${v.toFixed(1)}% (${k})`);
         svg.property("value", data[i]).dispatch("input", {bubbles: true});
       }
 
@@ -355,6 +361,7 @@ const LineChart = ({ data }) => {
   return (
     <svg
       ref={ref}
+      className="mt-10"
       style={{
         height: 500,
         width: "100%",
@@ -375,7 +382,7 @@ const PlaygroundForm = ({ setState, isLoading, data }) => {
     return <div />;
   }
   return (
-    <div key={ticket++} id="graffiti" className="">
+    <div key={ticket++} id="graffiti" className="my-0">
       <LineChart data={ profits }/>
       <div className="columns-2 mt-8">
         <DollarInput
@@ -486,7 +493,9 @@ const Form = () => {
   return (
     <div id="graffiti" className="flex flex-col max-w-2xl sm:px-6 lg:px-8">
       <Tabs currentTab={tab} setTab={setTab} />
-      { elts }
+      <div className="pt-10">
+        { elts }
+      </div>
     </div>
   );
 }
