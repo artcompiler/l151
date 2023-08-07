@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import useSWR from 'swr';
 import { compile } from '../utils/swr/fetchers';
 import { useD3 } from '../utils/hooks/use-d3';
+import TableEditor from '../components/table-editor.jsx';
 
 function isNonNullObject(obj) {
   return (typeof obj === "object" && obj !== null);
@@ -384,6 +385,11 @@ const PlaygroundForm = ({ setState, isLoading, data }) => {
   return (
     <div key={ticket++} id="graffiti" className="my-0">
       <LineChart data={ profits }/>
+      <div>
+        <link rel="stylesheet" href="/tables.css" />
+        <TableEditor />
+      </div>
+      {/*
       <div className="columns-2 mt-8">
         <DollarInput
           name="shippingFee"
@@ -399,7 +405,8 @@ const PlaygroundForm = ({ setState, isLoading, data }) => {
           data={data}
           setState={setState}
         />
-      </div>
+        </div>
+       */}
     </div>
   );
 }
