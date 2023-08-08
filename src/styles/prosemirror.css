@@ -6,11 +6,8 @@ main {
 
 .ProseMirror {
     position: relative;
-    border: thin solid black;
-    border-radius: 0.25rem;
     padding: 1rem;
     outline: none;
-/*    min-height: 700px;*/
 }
 
 .ProseMirror {
@@ -223,7 +220,7 @@ img.ProseMirror-separator {
 .ProseMirror th {
   vertical-align: top;
   box-sizing: border-box;
-  position: relative;
+  position: left;
 }
 .ProseMirror .column-resize-handle {
   position: absolute;

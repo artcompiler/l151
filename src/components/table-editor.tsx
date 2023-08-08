@@ -18,8 +18,7 @@ import { addListNodes } from "prosemirror-schema-list"
 //import { DOMParser, Schema } from 'prosemirror-model';
 //import { schema as baseSchema } from 'prosemirror-schema-basic';
 //import { keymap } from 'prosemirror-keymap';
-import { exampleSetup, buildMenuItems } from 'prosemirror-example-setup';
-import { MenuItem, Dropdown } from 'prosemirror-menu';
+import { exampleSetup } from 'prosemirror-example-setup';
 import {
   NodeViewComponentProps,
   ProseMirror,
@@ -51,29 +50,6 @@ import {
   fixTables
 } from 'prosemirror-tables';
 
-const menu = buildMenuItems(baseSchema).fullMenu;
-function item(label: string, cmd: (state: EditorState) => boolean) {
-  return new MenuItem({ label, select: cmd, run: cmd });
-}
-const tableMenu = [
-  item('Insert column before', addColumnBefore),
-  item('Insert column after', addColumnAfter),
-  item('Delete column', deleteColumn),
-  item('Insert row before', addRowBefore),
-  item('Insert row after', addRowAfter),
-  item('Delete row', deleteRow),
-  item('Delete table', deleteTable),
-  item('Merge cells', mergeCells),
-  item('Split cell', splitCell),
-  item('Toggle header column', toggleHeaderColumn),
-  item('Toggle header row', toggleHeaderRow),
-  item('Toggle header cells', toggleHeaderCell),
-  item('Make cell green', setCellAttr('background', '#dfd')),
-  item('Make cell not-green', setCellAttr('background', null)),
-];
-
-menu.splice(2, 0, [new Dropdown(tableMenu, { label: 'Table' })]);
-
 /*
 const contentElement = document.querySelector('#content');
 if (!contentElement) {
@@ -99,7 +75,6 @@ document.execCommand('enableInlineTableEditing', false, 'false');
 //   // nodes: addListNodes(baseSchema.spec.nodes, "paragraph block*", "block"),
 //   marks: baseSchema.spec.marks
 // });
-
 
 const nodes = {
   doc: { content: "block" },
@@ -129,37 +104,150 @@ const schema = new Schema({
   marks: baseSchema.spec.marks,
 });
 
-// const editorState = EditorState.create({
-//   schema,
-//   plugins: exampleSetup({ schema: baseSchema }),
-// });
-
-let editorState = EditorState.create({
-  //  doc,
-  schema,
-  plugins: [
-    columnResizing(),
-    tableEditing(),
-    keymap({
-      Tab: goToNextCell(1),
-      'Shift-Tab': goToNextCell(-1),
-    }),
-  ].concat(
-    exampleSetup({
-      schema,
-      // @ts-expect-error: prosemirror-example-setup exports wrong types here.
-      menuContent: menu,
-    }),
-  ),
-});
-
-const fix = fixTables(editorState);
-if (fix) state = editorState.apply(fix.setMeta('addToHistory', false));
-
 function Paragraph({ children }: NodeViewComponentProps) {
   return <p>{children}</p>;
 }
 
+function Table({ children, props }) {
+  const editorState = useEditorState();
+  console.log("Table() editorState=" + JSON.stringify(Object.keys(editorState), null, 2));
+  const { table_name, row_name, desc, cols, rows } = {
+  table_name: "Prices",
+  row_name: "Price",
+  desc: "Add prices for items here.",
+  cols: [
+    "PRICE",
+    "BULK",
+    "BULK_PRICE",
+  ],
+  rows: [
+  {
+    "PRICE": "$7.00",
+    "BULK": 6,
+    "BULK_PRICE": "$6.00"
+  },
+  {
+    "PRICE": "$20.00",
+    "BULK": 6,
+    "BULK_PRICE": "$17.50"
+  },
+  {
+    "PRICE": "$110.00",
+    "BULK": 6,
+    "BULK_PRICE": "$99.00"
+  },
+  {
+    "PRICE": "$6.00",
+    "BULK": 6,
+    "BULK_PRICE": "$5.50"
+  },
+  {
+    "PRICE": "$6.50",
+    "BULK": 6,
+    "BULK_PRICE": "$6.00"
+  },
+  {
+    "PRICE": "$38.00",
+    "BULK": 2,
+    "BULK_PRICE": "$36.00"
+  },
+  {
+    "PRICE": "$90.00",
+    "BULK": 2,
+    "BULK_PRICE": "$85.00"
+  },
+  {
+    "PRICE": "$7.50",
+    "BULK": 6,
+    "BULK_PRICE": "$7.00"
+  },
+  {
+    "PRICE": "$70.00",
+    "BULK": 2,
+    "BULK_PRICE": "$65.00"
+  },
+  {
+    "PRICE": "$40.00",
+    "BULK": 4,
+    "BULK_PRICE": "$38.00"
+  },
+  {
+    "PRICE": "$45.00",
+    "BULK": 4,
+    "BULK_PRICE": "$35.95"
+  },
+  {
+    "PRICE": "$37.00",
+    "BULK": 4,
+    "BULK_PRICE": "$28.00"
+  },
+  {
+    "PRICE": "$38.00",
+    "BULK": 4,
+    "BULK_PRICE": "$29.00"
+  },
+  {
+    "PRICE": "$9.45",
+    "BULK": 6,
+    "BULK_PRICE": "$8.10"
+  },
+  {
+    "PRICE": "$21.00",
+    "BULK": 6,
+    "BULK_PRICE": "$18.00"
+  }]};
+  return (
+    <div className="pt-10">
+      <div className="sm:flex sm:items-center">
+        <div className="sm:flex-auto">
+          { /*<h1 className="text-base font-semibold leading-6 text-gray-900">
+            {table_name}
+            </h1> */
+          }
+          <p className="mt-2 text-sm text-gray-700">
+            { desc }
+          </p>
+        </div>
+      </div>
+      <div className="mt-8 flow-root">
+        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+            <table className="min-w-full divide-y divide-gray-300">
+              <thead>
+                <tr>
+                  {
+                    cols.map((col, index) => (
+                      <th key={index} scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold text-gray-900 sm:pl-0">
+                        {col}
+                      </th>
+                    ))
+                  }
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {
+                  rows.map((row, index) => (
+                    <tr key={index}>
+                      {
+                        cols.map((col, index) => (
+                          <td key={index} className="whitespace-nowrap py-2 pl-4 pr-3 text-xs font-medium text-gray-900 sm:pl-0">
+                            {row[col]}
+                          </td>
+                        ))
+                      }
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/*
 function Table({ children }: NodeViewComponentProps) {
   return (
     <div>
@@ -173,20 +261,21 @@ function Table({ children }: NodeViewComponentProps) {
         </thead>
         <tbody>
           <tr>
-            <td>One</td>
-            <td>Two</td>
-            <td>Three</td>
+            <td>4</td>
+            <td>5</td>
+            <td>6</td>
           </tr>
           <tr>
-            <td>Four</td>
-            <td>Five</td>
-            <td>Six</td>
+            <td>7</td>
+            <td>8</td>
+            <td>9</td>
           </tr>
         </tbody>
       </table>
     </div>
   );
 }
+*/
 
 const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
   paragraph: () => ({
@@ -196,10 +285,31 @@ const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
   }),
 };
 
+let defaultEditorState = EditorState.create({
+  data: { foo: "bar" },
+  schema,
+  plugins: [
+    columnResizing(),
+    tableEditing(),
+    keymap({
+      Tab: goToNextCell(1),
+      'Shift-Tab': goToNextCell(-1),
+    }),
+  ].concat(
+    exampleSetup({
+      schema,
+    }),
+  ),
+});
+
+const fix = fixTables(defaultEditorState);
+if (fix) state = defaultEditorState.apply(fix.setMeta('addToHistory', false));
+
 export function Editor() {
   const [ showEditor, setShowEditor ] = useState(false);
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ mount, setMount ] = useState();
+  const [ editorState, setEditorState ] = useState(defaultEditorState);
   useEffect(() => {
     // To avoid SSR of the editor.
     setShowEditor(true);
@@ -209,7 +319,11 @@ export function Editor() {
     <main>
       <ProseMirror
         mount={mount}
-        defaultState={editorState}
+        defaultState={defaultEditorState}
+        state={defaultEditorState}
+        dispatchTransaction={(tr) => {
+          setEditorState((s) => s.apply(tr));
+        }}
         nodeViews={nodeViews}
       >
         <div ref={setMount} />
