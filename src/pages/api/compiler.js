@@ -45,7 +45,6 @@ export class Transformer extends BasisTransformer {
       resume(err, val);
     });
   }
-
 }
 
 export const compiler = new BasisCompiler({

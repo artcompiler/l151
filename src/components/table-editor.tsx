@@ -108,144 +108,6 @@ function Paragraph({ children }: NodeViewComponentProps) {
   return <p>{children}</p>;
 }
 
-function Table({ children, props }) {
-  const editorState = useEditorState();
-  console.log("Table() editorState=" + JSON.stringify(Object.keys(editorState), null, 2));
-  const { table_name, row_name, desc, cols, rows } = {
-  table_name: "Prices",
-  row_name: "Price",
-  desc: "Add prices for items here.",
-  cols: [
-    "PRICE",
-    "BULK",
-    "BULK_PRICE",
-  ],
-  rows: [
-  {
-    "PRICE": "$7.00",
-    "BULK": 6,
-    "BULK_PRICE": "$6.00"
-  },
-  {
-    "PRICE": "$20.00",
-    "BULK": 6,
-    "BULK_PRICE": "$17.50"
-  },
-  {
-    "PRICE": "$110.00",
-    "BULK": 6,
-    "BULK_PRICE": "$99.00"
-  },
-  {
-    "PRICE": "$6.00",
-    "BULK": 6,
-    "BULK_PRICE": "$5.50"
-  },
-  {
-    "PRICE": "$6.50",
-    "BULK": 6,
-    "BULK_PRICE": "$6.00"
-  },
-  {
-    "PRICE": "$38.00",
-    "BULK": 2,
-    "BULK_PRICE": "$36.00"
-  },
-  {
-    "PRICE": "$90.00",
-    "BULK": 2,
-    "BULK_PRICE": "$85.00"
-  },
-  {
-    "PRICE": "$7.50",
-    "BULK": 6,
-    "BULK_PRICE": "$7.00"
-  },
-  {
-    "PRICE": "$70.00",
-    "BULK": 2,
-    "BULK_PRICE": "$65.00"
-  },
-  {
-    "PRICE": "$40.00",
-    "BULK": 4,
-    "BULK_PRICE": "$38.00"
-  },
-  {
-    "PRICE": "$45.00",
-    "BULK": 4,
-    "BULK_PRICE": "$35.95"
-  },
-  {
-    "PRICE": "$37.00",
-    "BULK": 4,
-    "BULK_PRICE": "$28.00"
-  },
-  {
-    "PRICE": "$38.00",
-    "BULK": 4,
-    "BULK_PRICE": "$29.00"
-  },
-  {
-    "PRICE": "$9.45",
-    "BULK": 6,
-    "BULK_PRICE": "$8.10"
-  },
-  {
-    "PRICE": "$21.00",
-    "BULK": 6,
-    "BULK_PRICE": "$18.00"
-  }]};
-  return (
-    <div className="pt-10">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          { /*<h1 className="text-base font-semibold leading-6 text-gray-900">
-            {table_name}
-            </h1> */
-          }
-          <p className="mt-2 text-sm text-gray-700">
-            { desc }
-          </p>
-        </div>
-      </div>
-      <div className="mt-8 flow-root">
-        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            <table className="min-w-full divide-y divide-gray-300">
-              <thead>
-                <tr>
-                  {
-                    cols.map((col, index) => (
-                      <th key={index} scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold text-gray-900 sm:pl-0">
-                        {col}
-                      </th>
-                    ))
-                  }
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {
-                  rows.map((row, index) => (
-                    <tr key={index}>
-                      {
-                        cols.map((col, index) => (
-                          <td key={index} className="whitespace-nowrap py-2 pl-4 pr-3 text-xs font-medium text-gray-900 sm:pl-0">
-                            {row[col]}
-                          </td>
-                        ))
-                      }
-                    </tr>
-                  ))
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 /*
 function Table({ children }: NodeViewComponentProps) {
@@ -277,14 +139,6 @@ function Table({ children }: NodeViewComponentProps) {
 }
 */
 
-const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
-  paragraph: () => ({
-    component: Table,
-    dom: document.createElement("div"),
-    contentDOM: document.createElement("div"),
-  }),
-};
-
 let defaultEditorState = EditorState.create({
   data: { foo: "bar" },
   schema,
@@ -305,17 +159,12 @@ let defaultEditorState = EditorState.create({
 const fix = fixTables(defaultEditorState);
 if (fix) state = defaultEditorState.apply(fix.setMeta('addToHistory', false));
 
-export function Editor() {
+function TableEditor({ reactNodeViews }) {
   const [ showEditor, setShowEditor ] = useState(false);
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
   const [ mount, setMount ] = useState();
   const [ editorState, setEditorState ] = useState(defaultEditorState);
-  useEffect(() => {
-    // To avoid SSR of the editor.
-    setShowEditor(true);
-  }, []);
   return (
-    showEditor &&
     <main>
       <ProseMirror
         mount={mount}
@@ -329,6 +178,80 @@ export function Editor() {
         <div ref={setMount} />
         {renderNodeViews()}
       </ProseMirror>
-    </main> || <div />
+    </main>
+  );
+}
+
+const buildTable = ({ data }) => {
+  return function Table({ children }) {
+    const editorState = useEditorState();
+    const { table_name, row_name, desc, cols = [], rows = [] } = data;
+    return (
+      <div className="pt-10">
+        <div className="sm:flex sm:items-center">
+          <div className="sm:flex-auto">
+            { /*<h1 className="text-base font-semibold leading-6 text-gray-900">
+                {table_name}
+                </h1> */
+            }
+            <p className="mt-2 text-sm text-gray-700">
+              { desc }
+            </p>
+          </div>
+        </div>
+        <div className="mt-8 flow-root">
+          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <table className="min-w-full divide-y divide-gray-300">
+                <thead>
+                  <tr>
+                    {
+                      cols.map((col, index) => (
+                        <th key={index} scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold text-gray-900 sm:pl-0">
+                          {col}
+                        </th>
+                      ))
+                    }
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {
+                    rows.map((row, index) => (
+                      <tr key={index}>
+                        {
+                          cols.map((col, index) => (
+                            <td key={index} className="whitespace-nowrap py-2 pl-4 pr-3 text-xs font-medium text-gray-900 sm:pl-0">
+                              {row[col]}
+                            </td>
+                          ))
+                        }
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+}
+
+export function Editor({ data }) {
+  const [ showEditor, setShowEditor ] = useState(false);
+  const reactNodeViews: Record<string, ReactNodeViewConstructor> = {
+    paragraph: () => ({
+      component: buildTable({ data }),
+      dom: document.createElement("div"),
+      contentDOM: document.createElement("div"),
+    }),
+  };
+  useEffect(() => {
+    // To avoid SSR of the editor.
+    setShowEditor(true);
+  }, []);
+  return (
+    showEditor && <TableEditor reactNodeViews={reactNodeViews} /> || <div />
   );
 }

@@ -23,7 +23,6 @@ const Form = () => {
     recompile = true;
     lastStateHash = stateHash;
   }
-
   const resp = useSWR(
     access_token && id && url && state && {
       access_token,
@@ -34,13 +33,13 @@ const Form = () => {
     compile
   );
 
-  // If isLoading, then data = state.
+  // // If isLoading, then data = state.
   const data = {
     ...state,
     ...resp.data?.data,
   };
   return (
-    <Editor />
+    <Editor data={data} />
   );
 }
 
