@@ -140,7 +140,6 @@ function Table({ children }: NodeViewComponentProps) {
 */
 
 let defaultEditorState = EditorState.create({
-  data: { foo: "bar" },
   schema,
   plugins: [
     columnResizing(),
@@ -157,12 +156,12 @@ let defaultEditorState = EditorState.create({
 });
 
 const fix = fixTables(defaultEditorState);
-if (fix) state = defaultEditorState.apply(fix.setMeta('addToHistory', false));
+if (fix) defaultEditorState = defaultEditorState.apply(fix.setMeta('addToHistory', false));
 
-function TableEditor({ reactNodeViews }) {
+function TableEditor({ reactNodeViews }: { reactNodeViews }) {
   const [ showEditor, setShowEditor ] = useState(false);
   const { nodeViews, renderNodeViews } = useNodeViews(reactNodeViews);
-  const [ mount, setMount ] = useState();
+  const [ mount, setMount ] = useState<HTMLDivElement | null>(null);
   const [ editorState, setEditorState ] = useState(defaultEditorState);
   return (
     <main>
@@ -183,7 +182,7 @@ function TableEditor({ reactNodeViews }) {
 }
 
 const buildTable = ({ data }) => {
-  return function Table({ children }) {
+  return function Table() {
     const editorState = useEditorState();
     const { table_name, row_name, desc, cols = [], rows = [] } = data;
     return (

@@ -33,7 +33,7 @@ function Paragraph({ children }: NodeViewComponentProps) {
   return <p>{children}</p>;
 }
 
-const reactNodeViews: Record = {
+const reactNodeViews = {
   paragraph: () => ({
     component: Paragraph,
     dom: document.createElement("div"),
