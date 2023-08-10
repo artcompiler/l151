@@ -1,23 +1,10 @@
-// import 'prosemirror-view/style/prosemirror.css';
-// import 'prosemirror-menu/style/menu.css';
-// import 'prosemirror-example-setup/style/style.css';
-// import 'prosemirror-gapcursor/style/gapcursor.css';
-// import '../style/tables.css';
-
 import React, { useState, useEffect } from 'react';
 import { schema as baseSchema } from "prosemirror-schema-basic"
 import { baseKeymap } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
-import { Schema } from "prosemirror-model";
+import { Schema, DOMParser } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import { addListNodes } from "prosemirror-schema-list"
-//import { exampleSetup } from "prosemirror-example-setup"
-//import { createRoot } from "react-dom/client";
-//import { EditorView } from 'prosemirror-view';
-//import { EditorState } from 'prosemirror-state';
-//import { DOMParser, Schema } from 'prosemirror-model';
-//import { schema as baseSchema } from 'prosemirror-schema-basic';
-//import { keymap } from 'prosemirror-keymap';
 import { exampleSetup } from 'prosemirror-example-setup';
 import {
   NodeViewComponentProps,
@@ -25,6 +12,8 @@ import {
   useEditorEffect,
   useEditorState,
   useNodeViews,
+  useEditorEventCallback,
+  useEditorEventListener,
   ReactNodeViewConstructor,
 } from "@nytimes/react-prosemirror";
 import {
@@ -49,32 +38,6 @@ import {
   tableNodes,
   fixTables
 } from 'prosemirror-tables';
-
-/*
-const contentElement = document.querySelector('#content');
-if (!contentElement) {
-  throw new Error('Failed to find #content');
-}
-const doc = DOMParser.fromSchema(schema).parse(contentElement);
-
-(window as any).view = new EditorView(document.querySelector('#editor'), {
-  state,
-  });
-
-document.execCommand('enableObjectResizing', false, 'false');
-document.execCommand('enableInlineTableEditing', false, 'false');
-
-*/
-
-// const schema = new Schema({
-//   nodes: {
-//     doc: { content: "block+" },
-//     paragraph: { group: "block", content: "inline*" },
-//     text: { group: "inline" },
-//   },
-//   // nodes: addListNodes(baseSchema.spec.nodes, "paragraph block*", "block"),
-//   marks: baseSchema.spec.marks
-// });
 
 const nodes = {
   doc: { content: "block" },
@@ -104,41 +67,6 @@ const schema = new Schema({
   marks: baseSchema.spec.marks,
 });
 
-function Paragraph({ children }: NodeViewComponentProps) {
-  return <p>{children}</p>;
-}
-
-
-/*
-function Table({ children }: NodeViewComponentProps) {
-  return (
-    <div>
-      <table>
-        <thead>
-          <tr>
-            <th>1</th>
-            <th>2</th>
-            <th>3</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>4</td>
-            <td>5</td>
-            <td>6</td>
-          </tr>
-          <tr>
-            <td>7</td>
-            <td>8</td>
-            <td>9</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
-}
-*/
-
 let defaultEditorState = EditorState.create({
   schema,
   plugins: [
@@ -148,15 +76,14 @@ let defaultEditorState = EditorState.create({
       Tab: goToNextCell(1),
       'Shift-Tab': goToNextCell(-1),
     }),
-  ].concat(
-    exampleSetup({
-      schema,
-    }),
-  ),
+  ]
 });
 
 const fix = fixTables(defaultEditorState);
 if (fix) defaultEditorState = defaultEditorState.apply(fix.setMeta('addToHistory', false));
+
+// TODO encode/decode prosemirror state
+// TODO embed table editor in playground
 
 function TableEditor({ reactNodeViews }: { reactNodeViews }) {
   const [ showEditor, setShowEditor ] = useState(false);
@@ -167,15 +94,24 @@ function TableEditor({ reactNodeViews }: { reactNodeViews }) {
     <main>
       <ProseMirror
         mount={mount}
-        defaultState={defaultEditorState}
-        state={defaultEditorState}
-        dispatchTransaction={(tr) => {
-          setEditorState((s) => s.apply(tr));
-        }}
+        //defaultState={defaultEditorState}
+        state={editorState}
+        dispatchTransaction={
+          (tr) => {
+            if (mount) {
+              const node = DOMParser.fromSchema(schema).parse(mount);
+              console.log("TableEditor() tr=" + JSON.stringify(tr));
+              console.log("TableEditor() node=" + JSON.stringify(node.toJSON(), null, 2));
+            }
+            setEditorState((s) => {
+              return s.apply(tr);
+            });
+          }
+        }
         nodeViews={nodeViews}
       >
         <div ref={setMount} />
-        {renderNodeViews()}
+        { renderNodeViews() }
       </ProseMirror>
     </main>
   );
@@ -183,21 +119,13 @@ function TableEditor({ reactNodeViews }: { reactNodeViews }) {
 
 const buildTable = ({ data }) => {
   return function Table() {
-    const editorState = useEditorState();
     const { table_name, row_name, desc, cols = [], rows = [] } = data;
+    useEditorEventListener("keydown", (view, event) => {
+      let tr = view.state.tr
+      view.dispatch(tr);
+    });
     return (
       <div className="pt-10">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            { /*<h1 className="text-base font-semibold leading-6 text-gray-900">
-                {table_name}
-                </h1> */
-            }
-            <p className="mt-2 text-sm text-gray-700">
-              { desc }
-            </p>
-          </div>
-        </div>
         <div className="mt-8 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">

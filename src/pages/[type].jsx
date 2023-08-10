@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import useSWR from 'swr';
 import { compile } from '../utils/swr/fetchers';
 import { Editor } from '../components/table-editor.tsx';
+//import { Editor } from '../components/nytdemo-editor.tsx';
 
 let lastStateHash;
 
